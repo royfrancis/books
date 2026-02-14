@@ -3,7 +3,7 @@
 
 ![Docker](https://github.com/royfrancis/books/workflows/docker/badge.svg) ![Vitepress](https://github.com/royfrancis/books/workflows/vitepress/badge.svg)
 
-A VitePress site to display my book collection.
+A VitePress site to display my personal book collection.
 
 ## Developer Guide
 
@@ -58,7 +58,7 @@ npm run docs:build
 
 The output will be in `docs/.vitepress/dist`.
 
-To search by ISBN, run `node scripts/search-isbn.js <ISBN_NUMBER>`.
+To retrieve book information using ISBN, run `node scripts/search-isbn.js <ISBN_NUMBER>`.
 
 ### Project Structure
 

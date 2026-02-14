@@ -106,7 +106,6 @@ export default defineConfig({
         ['link', { rel: 'icon', href: '/books/favicon.ico' }],
         ['link', { rel: 'icon', type: 'image/svg+xml', href: '/books/favicon.svg' }],
         ['link', { rel: 'icon', type: 'image/png', sizes: '96x96', href: '/books/favicon-96x96.png' }],
-        ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/books/favicon-180x180.png' }],
         ['link', { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/books/favicon-192x192.png' }],
         ['link', { rel: 'icon', type: 'image/png', sizes: '512x512', href: '/books/favicon-512x512.png' }]
     ]
