@@ -213,7 +213,7 @@ const handleKeydown = (event) => {
         >
           <label :for="`${filter.field}-filter`" class="filter-label">{{ filter.label }}</label>
           <select v-model="filterValues[filter.field]" :id="`${filter.field}-filter`" class="filter-select">
-            <option value="">All {{ filter.label }}s</option>
+            <option value="">All</option>
             <option 
               v-for="value in uniqueFilterValues[filter.field]" 
               :key="value" 
