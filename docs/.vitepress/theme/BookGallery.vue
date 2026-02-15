@@ -13,6 +13,7 @@ const loading = ref(true);
 const selectedBook = ref(null);
 const showModal = ref(false);
 const selectedBookIndex = ref(null);
+const isModalFromBanner = ref(false);
 
 const cardsPerRow = computed(() => theme.value.cardsPerRow || 4);
 
@@ -29,6 +30,13 @@ const cardTags = computed(() => bookFields.value.cardTags || []);
 const modalFields = computed(() => bookFields.value.modalFields || []);
 const filterFields = computed(() => bookFields.value.filterFields || []);
 const sortFields = computed(() => bookFields.value.sortFields || []);
+
+// Get banner configuration from theme
+const bannerConfig = computed(() => theme.value.bannerConfig || {});
+const bannerEnabled = computed(() => bannerConfig.value.enabled !== false);
+const topBooksCount = computed(() => bannerConfig.value.topBooksCount || 10);
+const bannerHeight = computed(() => bannerConfig.value.height || '350px');
+const bannerRows = computed(() => bannerConfig.value.rows || 1);
 
 // Create a color map for languages
 const languageColorMap = computed(() => {
@@ -111,6 +119,17 @@ const filteredBooks = computed(() => {
   return result;
 });
 
+// Computed property for top books in banner (filtered by Spotlight field)
+const topBooks = computed(() => {
+  // Filter books where Spotlight column has 'yes'
+  let spotlightBooks = books.value.filter(book => {
+    const spotlightValue = String(book.Spotlight || '').toLowerCase().trim();
+    return spotlightValue === 'yes';
+  });
+  // Return the first N books
+  return spotlightBooks.slice(0, topBooksCount.value);
+});
+
 const isBorrowed = (book) => {
   const borrowedValue = book[borrowedField.value];
   return borrowedValue && String(borrowedValue).trim().length > 0;
@@ -155,6 +174,14 @@ const toTitleCase = (str) => {
 const openModal = (book) => {
   selectedBook.value = book;
   selectedBookIndex.value = filteredBooks.value.indexOf(book);
+  isModalFromBanner.value = false;
+  showModal.value = true;
+};
+
+const openModalFromBanner = (book) => {
+  selectedBook.value = book;
+  selectedBookIndex.value = null;
+  isModalFromBanner.value = true;
   showModal.value = true;
 };
 
@@ -162,6 +189,7 @@ const closeModal = () => {
   showModal.value = false;
   selectedBook.value = null;
   selectedBookIndex.value = null;
+  isModalFromBanner.value = false;
 };
 
 const navigateToBook = (book) => {
@@ -184,10 +212,10 @@ const navigateNext = () => {
 const handleKeydown = (event) => {
   if (!showModal.value) return;
   
-  if (event.key === 'ArrowLeft') {
+  if (event.key === 'ArrowLeft' && !isModalFromBanner.value) {
     event.preventDefault();
     navigatePrevious();
-  } else if (event.key === 'ArrowRight') {
+  } else if (event.key === 'ArrowRight' && !isModalFromBanner.value) {
     event.preventDefault();
     navigateNext();
   } else if (event.key === 'Escape') {
@@ -198,6 +226,28 @@ const handleKeydown = (event) => {
 
 <template>
   <div class="gallery-container">
+    <!-- Top Books Banner -->
+    <div v-if="bannerEnabled && !loading && topBooks.length > 0" class="banner-container" :style="{ height: bannerHeight }">
+      <div class="banner-books-container" :style="{ '--banner-rows': bannerRows }">
+          <div 
+            v-for="(book, index) in topBooks" 
+            :key="`banner-${index}`"
+            class="banner-book-item"
+            @click="openModalFromBanner(book)"
+            :title="getFieldValue(book, titleField)"
+          >
+            <div class="banner-book-cover">
+              <img 
+                :src="getCover(book)" 
+                @error="handleImageError"
+                :alt="getFieldValue(book, titleField)" 
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+    </div>
+
     <div class="search-wrapper">
       <input 
         v-model="searchQuery" 
@@ -305,6 +355,7 @@ const handleKeydown = (event) => {
         <div class="modal-content">
           <!-- Navigation buttons -->
           <button 
+            v-if="!isModalFromBanner"
             class="modal-nav-button modal-nav-prev"
             :disabled="selectedBookIndex === null || selectedBookIndex === 0"
             @click="navigatePrevious"
@@ -315,6 +366,7 @@ const handleKeydown = (event) => {
           </button>
           
           <button 
+            v-if="!isModalFromBanner"
             class="modal-nav-button modal-nav-next"
             :disabled="selectedBookIndex === null || selectedBookIndex >= filteredBooks.length - 1"
             @click="navigateNext"

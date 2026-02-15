@@ -85,6 +85,14 @@ export default defineConfig({
             ]
         },
 
+        // Banner configuration for top books showcase
+        bannerConfig: {
+            enabled: true,                    // Enable/disable the banner
+            topBooksCount: 12,                // Number of books to display in banner
+            height: '250px',                  // Fixed height of banner (e.g., '300px', '400px', etc.)
+            rows: 2                           // Number of rows to display books in. Actually fixed to 2 for now, but can be made dynamic in the future if needed.
+        },
+
         socialLinks: [
             { icon: 'github', link: 'https://github.com/royfrancis/books' }
         ],
