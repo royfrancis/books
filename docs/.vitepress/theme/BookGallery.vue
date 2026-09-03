@@ -30,6 +30,19 @@ const cardTags = computed(() => bookFields.value.cardTags || []);
 const modalFields = computed(() => bookFields.value.modalFields || []);
 const filterFields = computed(() => bookFields.value.filterFields || []);
 const sortFields = computed(() => bookFields.value.sortFields || []);
+const modalSummaryFields = computed(() => modalFields.value.filter(field => field.field !== 'Notes'));
+const modalNotesField = computed(() => modalFields.value.find(field => field.field === 'Notes'));
+
+const categoryColors = [
+  '#4f7c68',
+  '#b45f4a',
+  '#4878a8',
+  '#9b703f',
+  '#7d659b',
+  '#397f89',
+  '#a24f67',
+  '#66733f'
+];
 
 // Get banner configuration from theme
 const bannerConfig = computed(() => theme.value.bannerConfig || {});
@@ -52,6 +65,18 @@ const languageColorMap = computed(() => {
     }
   });
   return colorMap;
+});
+
+const categoryColorMap = computed(() => {
+  const categories = [...new Set(books.value
+    .map(book => book.Category)
+    .filter(value => value && String(value).trim().length > 0)
+  )].sort();
+
+  return Object.fromEntries(categories.map((category, index) => [
+    category,
+    categoryColors[index % categoryColors.length]
+  ]));
 });
 
 onMounted(async () => {
@@ -149,6 +174,21 @@ const getFieldValue = (book, field) => {
 
 const getLanguageTagColor = (language) => {
   return languageColorMap.value[language] || '#808080';
+};
+
+const getCategoryColor = (category) => {
+  return categoryColorMap.value[category] || '#7a7a72';
+};
+
+const getCardStyle = (book, index) => ({
+  '--category-color': getCategoryColor(getFieldValue(book, 'Category')),
+  '--card-delay': `${Math.min(index, 12) * 35}ms`
+});
+
+const getGoodreadsUrl = (book) => {
+  const isbn = String(getFieldValue(book, 'ISBN')).replace(/[^0-9X]/gi, '');
+  const query = isbn || `${getFieldValue(book, titleField.value)} ${getFieldValue(book, authorField.value)}`;
+  return `https://www.goodreads.com/search?q=${encodeURIComponent(query)}`;
 };
 
 const formatModalFieldValue = (fieldName, value) => {
@@ -296,6 +336,7 @@ const handleKeydown = (event) => {
             <option value="reverse">Reverse</option>
           </select>
         </div>
+
       </div>
     </div>
 
@@ -304,12 +345,17 @@ const handleKeydown = (event) => {
       <span>Loading library...</span>
     </div>
 
-    <div v-else class="book-grid" :style="{ '--cards-per-row': cardsPerRow }">
+    <div
+      v-else
+      class="book-grid"
+      :style="{ '--cards-per-row': cardsPerRow }"
+    >
       <div 
         v-for="(book, index) in filteredBooks" 
-        :key="index" 
+        :key="getFieldValue(book, 'ISBN') || index" 
         class="book-card"
         :class="{ 'borrowed': isBorrowed(book) }"
+        :style="getCardStyle(book, index)"
         @click="openModal(book)"
         @keydown.enter="openModal(book)"
         @keydown.space.prevent="openModal(book)"
@@ -339,7 +385,11 @@ const handleKeydown = (event) => {
                 v-if="getFieldValue(book, tag.field)" 
                 class="tag"
                 :class="tag.cssClass"
-                :style="tag.field === 'Language' ? { backgroundColor: getLanguageTagColor(getFieldValue(book, tag.field)) } : {}"
+                :style="tag.field === 'Language'
+                  ? { backgroundColor: getLanguageTagColor(getFieldValue(book, tag.field)) }
+                  : tag.field === 'Category'
+                    ? { '--tag-color': getCategoryColor(getFieldValue(book, tag.field)) }
+                    : {}"
               >
                 {{ getFieldValue(book, tag.field) }}
               </span>
@@ -414,6 +464,16 @@ const handleKeydown = (event) => {
             <div class="modal-right">
               <div class="modal-title">{{ toTitleCase(getFieldValue(selectedBook, titleField)) }}</div>
               <div class="modal-author">{{ getFieldValue(selectedBook, authorField) }}</div>
+
+              <div class="modal-links" aria-label="Find this book online">
+                <a
+                  :href="getGoodreadsUrl(selectedBook)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Goodreads
+                </a>
+              </div>
               
               <div class="modal-info">
                 <!-- Borrowed status displayed separately if present -->
@@ -423,7 +483,8 @@ const handleKeydown = (event) => {
                 </div>
                 
                 <!-- Dynamic modal fields from configuration -->
-                <template v-for="field in modalFields" :key="field.field">
+                <div class="modal-summary">
+                <template v-for="field in modalSummaryFields" :key="field.field">
                   <div 
                     v-if="getFieldValue(selectedBook, field.field)" 
                     class="modal-field"
@@ -433,6 +494,15 @@ const handleKeydown = (event) => {
                     <div class="modal-value">{{ formatModalFieldValue(field.field, getFieldValue(selectedBook, field.field)) }}</div>
                   </div>
                 </template>
+                </div>
+
+                <div
+                  v-if="modalNotesField && getFieldValue(selectedBook, modalNotesField.field)"
+                  class="modal-field modal-field-notes"
+                >
+                  <div class="modal-key">{{ modalNotesField.label }}</div>
+                  <div class="modal-value">{{ getFieldValue(selectedBook, modalNotesField.field) }}</div>
+                </div>
               </div>
             </div>
           </div>
