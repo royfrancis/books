@@ -5,8 +5,8 @@ import 'dotenv/config'
 const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID
 
 // Font configuration
-const FONT_FAMILY = 'Montserrat' // Change this to use a different Google Font
-const FONT_GOOGLE_URL = 'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap'
+const FONT_FAMILY = 'Source Sans 3'
+const FONT_GOOGLE_URL = 'https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&display=swap'
 
 // Define 10 distinct colors for language tags
 const LANGUAGE_COLORS = [

@@ -234,7 +234,11 @@ const handleKeydown = (event) => {
             :key="`banner-${index}`"
             class="banner-book-item"
             @click="openModalFromBanner(book)"
+            @keydown.enter="openModalFromBanner(book)"
+            @keydown.space.prevent="openModalFromBanner(book)"
             :title="getFieldValue(book, titleField)"
+            role="button"
+            tabindex="0"
           >
             <div class="banner-book-cover">
               <img 
@@ -254,6 +258,7 @@ const handleKeydown = (event) => {
         type="text" 
         placeholder="Search for books..." 
         class="search-input"
+        aria-label="Search books"
       />
       
       <div class="filters-container">
@@ -294,7 +299,10 @@ const handleKeydown = (event) => {
       </div>
     </div>
 
-    <div v-if="loading" class="loading">Loading library...</div>
+    <div v-if="loading" class="loading" role="status">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <span>Loading library...</span>
+    </div>
 
     <div v-else class="book-grid" :style="{ '--cards-per-row': cardsPerRow }">
       <div 
@@ -303,6 +311,10 @@ const handleKeydown = (event) => {
         class="book-card"
         :class="{ 'borrowed': isBorrowed(book) }"
         @click="openModal(book)"
+        @keydown.enter="openModal(book)"
+        @keydown.space.prevent="openModal(book)"
+        role="button"
+        tabindex="0"
       >
         <div class="book-cover-wrapper">
           <img 
@@ -342,17 +354,30 @@ const handleKeydown = (event) => {
     </div>
     
     <div v-if="!loading && books.length === 0" class="no-results">
-        Library currently unavailable!
+      <div class="empty-state-mark" aria-hidden="true">!</div>
+      <div class="empty-state-title">Library unavailable</div>
+      <div class="empty-state-copy">The collection could not be loaded. Please try again later.</div>
     </div>
 
     <div v-else-if="!loading && filteredBooks.length === 0" class="no-results">
-        No books found matching filters.
+      <div class="empty-state-mark" aria-hidden="true">0</div>
+      <div class="empty-state-title">No matching books</div>
+      <div class="empty-state-copy">Try a different search or adjust the filters.</div>
     </div>
 
     <!-- Modal -->
     <transition name="modal">
       <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-        <div class="modal-content">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-label="Book details">
+          <button
+            class="modal-close-button"
+            type="button"
+            aria-label="Close book details"
+            title="Close"
+            @click="closeModal"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
           <!-- Navigation buttons -->
           <button 
             v-if="!isModalFromBanner"
